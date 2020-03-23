@@ -19,6 +19,7 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.wahidhidayat.latihanapi.Activity.MovieDetailActivity;
 import com.wahidhidayat.latihanapi.BuildConfig;
+import com.wahidhidayat.latihanapi.MainActivity;
 import com.wahidhidayat.latihanapi.Model.Movie;
 import com.wahidhidayat.latihanapi.R;
 
@@ -49,7 +50,7 @@ public class ReleaseReminderReceiver extends BroadcastReceiver {
             final String today = day.format(new Date());
             AsyncHttpClient client = new AsyncHttpClient();
             listItem = new ArrayList<>();
-            String url = "https://api.themoviedb.org/3/discover/movie?api_key=" + BuildConfig.API_KEY + "&primary_release_date.gte=" + today + "&primary_release_date.lte=" + today;
+            String url = BuildConfig.BASE_MOVIE_URL + BuildConfig.API_KEY + "&primary_release_date.gte=" + today + "&primary_release_date.lte=" + today;
             client.get(url, new JsonHttpResponseHandler() {
                 @SuppressLint("ResourceType")
                 @Override
@@ -63,7 +64,7 @@ public class ReleaseReminderReceiver extends BroadcastReceiver {
                             moviesItems.setId(movie.getInt("id"));
                             moviesItems.setTitle(movie.getString("title"));
                             moviesItems.setOverview(movie.getString("overview"));
-                            moviesItems.setPoster("https://image.tmdb.org/t/p/w185" + movie.getString("poster_path"));
+                            moviesItems.setPoster(BuildConfig.IMG_URL + movie.getString("poster_path"));
                             listItem.add(moviesItems);
                             showAlarmNotification(context, context.getResources().getString(R.string.today_release), null, reminder, moviesItems);
                         }
@@ -107,8 +108,7 @@ public class ReleaseReminderReceiver extends BroadcastReceiver {
     private PendingIntent getPendingIntent(Context context, int notificationId, Movie item) {
         Intent intent;
         if (notificationId == RELEASE_ID) {
-            intent = new Intent(context, MovieDetailActivity.class);
-            intent.putExtra(MovieDetailActivity.EXTRA_MOVIE, item);
+            intent = new Intent(context, MainActivity.class);
         } else {
             return null;
         }
@@ -131,13 +131,15 @@ public class ReleaseReminderReceiver extends BroadcastReceiver {
                     .setSmallIcon(R.drawable.outline_notifications_white_24dp)
                     .setContentTitle(title)
                     .setStyle(inboxStyle)
-                    .setColor(ContextCompat.getColor(context, android.R.color.transparent));
+                    .setColor(ContextCompat.getColor(context, android.R.color.transparent))
+                    .setAutoCancel(true);
         } else {
             builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.outline_notifications_white_24dp)
                     .setContentTitle(title)
                     .setContentText(message)
-                    .setColor(ContextCompat.getColor(context, android.R.color.transparent));
+                    .setColor(ContextCompat.getColor(context, android.R.color.transparent))
+                    .setAutoCancel(true);
         }
 
         PendingIntent pendingIntent = getPendingIntent(context, notifId, item);
